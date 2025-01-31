@@ -5,7 +5,7 @@ function InputArea() {
   return (
     <>
     {/* Input Area */}
-      <div className="border-t border-gray-100 bg-white p-4">
+      <div className="border-t border-gray-100 bg-white p-3">
           <div className="flex gap-3 max-w-4xl mx-auto">
             <input
               type="text"
@@ -17,7 +17,7 @@ function InputArea() {
                 transition-all duration-200"
             />
             <button className="bg-gradient-to-br from-blue-500 to-blue-600 text-white px-4 py-2.5 
-              rounded-xl hover:shadow-md transition-all duration-200 flex items-center gap-2">
+              rounded-xl hover:shadow-md transition-all duration-200 flex items-center gap-2 cursor-pointer">
               <span className="hidden sm:inline">Send</span>
               <Send size={18} />
             </button>
