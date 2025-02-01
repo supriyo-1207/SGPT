@@ -1,36 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
-import { motion } from 'framer-motion';
-
-function ChatArea() {
-    const [messages, setMessages] = useState([
-        { id: 1, text: 'Hi! I am SGPT. How can I assist you today?', type: 'bot' }
-    ]);
-    
+import WelcomeMessage from './WelcomeMessage';
+const ChatArea = ({ messages }) => {
+    const messagesEndRef = useRef(null);
+  
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+  
+    useEffect(() => {
+      scrollToBottom();
+    }, [messages]);
+  
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 rounded-xl shadow-inner flex flex-col items-center justify-center">
-            {messages.length === 1 && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center text-lg text-gray-600 bg-white px-6 py-4 rounded-lg shadow-md max-w-md"
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        {messages.length === 0 ? (
+          <WelcomeMessage />
+        ) : (
+          <div className="max-w-3xl mx-auto space-y-4">
+            {messages.map((msg, index) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`
+                    max-w-[85%] sm:max-w-[70%] px-4 py-3 rounded-2xl 
+                    ${msg.type === 'user' 
+                      ? 'bg-blue-600 text-white rounded-br-none' 
+                      : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-none'
+                    }
+                    transform transition-all duration-200 hover:scale-[1.02]
+                    animate-fade-slide-in
+                  `}
                 >
-                    {messages[0].text}
-                </motion.div>
-            )}
-            {messages.length > 1 && messages.map((msg) => (
-                <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, x: msg.type === 'user' ? 50 : -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`max-w-xs px-4 py-2 rounded-lg text-white ${msg.type === 'user' ? 'ml-auto bg-blue-500' : 'mr-auto bg-gray-700'}`}
-                >
+                  <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
                     {msg.text}
-                </motion.div>
+                  </p>
+                  <span className={`
+                    text-xs mt-1 block
+                    ${msg.type === 'user' ? 'text-blue-100' : 'text-gray-400'}
+                  `}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
             ))}
-        </div>
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
     );
-}
+  };
+
 export default ChatArea
