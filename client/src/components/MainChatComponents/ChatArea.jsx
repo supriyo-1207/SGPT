@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import React, {useRef, useEffect } from 'react';
 import WelcomeMessage from './WelcomeMessage';
 const ChatArea = ({ messages }) => {
     const messagesEndRef = useRef(null);

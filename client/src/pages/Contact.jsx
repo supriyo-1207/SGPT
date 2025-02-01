@@ -1,11 +1,9 @@
 import React from 'react'
-import { Helmet } from 'react-helmet'
+import Title from '../components/CommonComponents/Title'
 function Contact() {
   return (
     <>
-      <Helmet>
-        <title>Contact | SGPT</title>
-      </Helmet>
+       <Title titleName="Contact" />
       <h1>Contact</h1>
     </>
   )

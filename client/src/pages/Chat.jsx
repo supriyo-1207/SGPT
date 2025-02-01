@@ -3,7 +3,8 @@ import ChatArea from '../components/MainChatComponents/ChatArea';
 import InputArea from '../components/MainChatComponents/InputArea';
 import SideBar from '../components/SideBarComponents/SideBar';
 import NavBar from '../components/MainChatComponents/NavBar';
-import { Helmet } from 'react-helmet'
+import Title from '../components/CommonComponents/Title'
+
 
 
 const Chat = () => {
@@ -52,9 +53,7 @@ const Chat = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Chat | SGPT</title>
-      </Helmet>
+      <Title titleName="Chat" />
       <div className="flex h-screen bg-gray-50">
         {/* Side Bar */}
         <SideBar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
