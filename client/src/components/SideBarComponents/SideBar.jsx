@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import SideBarFooter from './SideBarFooter';
 import SideBarHeader from './SiderBarHeader';
 import ChatHistory from './ChatHistory';
-function SideBar({isSidebarOpen, toggleSidebar}) {
+function SideBar({isSidebarOpen, toggleSidebar, profile}) {
   return (
     <>
       {/* Sidebar backdrop - only visible on mobile when sidebar is open */}
@@ -28,7 +28,7 @@ function SideBar({isSidebarOpen, toggleSidebar}) {
        <ChatHistory/>
 
         {/* Profile Footer */}
-       <SideBarFooter/>
+       <SideBarFooter profile={profile}/>
       </aside>
 
     </>

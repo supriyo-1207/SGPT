@@ -10,6 +10,6 @@ router.post('/login', loginController.postLoging);
 router.post('/register',registerController.postRegister);
 router.get('/chat',authenticateUser, chatController.getChat);
 router.post('/chat',chatController.postChat);
-
+router.post('/logout', authenticateUser,loginController.postLogout);
 
 module.exports=router;

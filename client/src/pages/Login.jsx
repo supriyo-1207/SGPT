@@ -43,6 +43,7 @@ function Login() {
       if (error.response) {
         // Server responded with an error
         toast.error(error.response.data.message || 'Login failed');
+        navigate('/register');
       } else if (error.request) {
         // Request was made but no response
         toast.error('No response from server. Please try again.');

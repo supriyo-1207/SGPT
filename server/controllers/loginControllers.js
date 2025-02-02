@@ -48,3 +48,22 @@ exports.postLoging = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.postLogout = async (req, res) => {
+  try {
+    // Clear token cookie
+    res.clearCookie("token", {
+      httpOnly: true, // Keeps the cookie secure from client-side JS
+      secure: process.env.NODE_ENV === 'production', // Ensures security in production
+      sameSite: 'lax', // Helps prevent CSRF attacks
+      path: '/' // Applies to the entire site
+    });
+    
+
+    // Send success response
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) { 
+    console.error('Logout error:', error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
