@@ -53,6 +53,3 @@ exports.postRegister = async (req, res) => {
     }
 };
 
-exports.getRegister = (req, res) => {
-    res.send('Register page');
-};
