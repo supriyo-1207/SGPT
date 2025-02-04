@@ -54,16 +54,19 @@ const Chat = () => {
   };
 
   // Create a new chat session
+
   const createNewSession = async () => {
     try {
       const response = await api.post('/chat/sessions');
       const newSession = response.data.session;
       setChatSessions(prev => [newSession, ...prev]);
-      setCurrentSessionId(newSession.id);
+      setCurrentSessionId(newSession._id); // Note: using _id instead of id
       setMessages([]);
+      return newSession._id;
     } catch (error) {
       console.error('Failed to create new session:', error);
       toast.error('Failed to create new chat');
+      return null;
     }
   };
 
@@ -87,29 +90,44 @@ const Chat = () => {
 
   const handleSendMessage = async (text) => {
     if (!text.trim() || !isAuthenticated) return;
-
+  
+    // If no session exists, create one first
+    if (!currentSessionId) {
+      try {
+        await createNewSession();
+        // Return early if session creation fails
+        if (!currentSessionId) {
+          toast.error('Unable to create chat session');
+          return;
+        }
+      } catch (error) {
+        toast.error('Failed to create chat session');
+        return;
+      }
+    }
+  
     const userMessage = {
       id: Date.now(),
       text,
       type: 'user',
       timestamp: new Date()
     };
-
+  
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-
+  
     try {
       const response = await api.post(`/chat/sessions/${currentSessionId}/messages`, {
         message: text
       });
-
+  
       const botMessage = {
         id: Date.now() + 1,
         text: response.data.message,
         type: 'bot',
         timestamp: new Date()
       };
-
+  
       setMessages(prev => [...prev, botMessage]);
       
       // Update chat session preview in the sidebar
@@ -126,6 +144,7 @@ const Chat = () => {
         return updatedSessions;
       });
     } catch (error) {
+      console.error('Message send error:', error);
       if (error.response?.status === 401) {
         toast.error('Session expired. Please log in again.');
         navigate('/');
@@ -136,6 +155,7 @@ const Chat = () => {
       setIsLoading(false);
     }
   };
+  
 
   useEffect(() => {
     checkAuth();
@@ -156,7 +176,7 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <Title titleName="Chat" />
-      
+
       <div className="flex flex-1 min-h-0">
         <SideBar
           isSidebarOpen={isSidebarOpen}
@@ -167,10 +187,10 @@ const Chat = () => {
           onNewChat={createNewSession}
           currentSessionId={currentSessionId}
         />
-        
+
         <main className="flex flex-col flex-1 min-w-0">
           <NavBar toggleSidebar={toggleSidebar} />
-          
+
           <div className="flex-1 flex flex-col min-h-0">
             <ChatArea
               messages={messages}
