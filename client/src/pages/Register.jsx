@@ -13,7 +13,7 @@ function Register() {
       // Handle form submission
       const formData = new FormData(e.target);
   
-      const fullName = formData.get('fullName');
+      const name = formData.get('name');
       const email = formData.get('email');
       const gender = formData.get('gender');
       const password = formData.get('password');
@@ -22,7 +22,7 @@ function Register() {
       const response = await fetch('http://localhost:3000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, gender, email, password }),
+        body: JSON.stringify({ name, gender, email, password }),
       });
   
       const data = await response.json();
@@ -60,7 +60,7 @@ function Register() {
           <div className="mt-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Input label="Full Name" type="text" name="fullName" id="fullName" autoComplete="name" required={true} />
+                <Input label="Full Name" type="text" name="name" id="name" autoComplete="name" required={true} />
               </div>
 
               <div>

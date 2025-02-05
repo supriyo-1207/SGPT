@@ -2,11 +2,19 @@ import React, { useState } from 'react'
 import SideBarFooter from './SideBarFooter';
 import SideBarHeader from './SiderBarHeader';
 import ChatHistory from './ChatHistory';
-function SideBar({isSidebarOpen, toggleSidebar, profile}) {
+function SideBar({
+  isSidebarOpen,
+  toggleSidebar,
+  profile,
+  sessions,
+  currentSession,
+  onSessionSelect,
+  onNewChat  // Add this prop
+}) {
   return (
     <>
       {/* Sidebar backdrop - only visible on mobile when sidebar is open */}
-      <div 
+      <div
         onClick={toggleSidebar}
         className={`
           fixed inset-0 bg-black/20 backdrop-blur-sm md:hidden
@@ -22,17 +30,17 @@ function SideBar({isSidebarOpen, toggleSidebar, profile}) {
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         z-20
       `}>
-        {/* Logo Header */}
-       <SideBarHeader toggleSidebar={toggleSidebar} />
-        {/* Chat History */}
-       <ChatHistory/>
-
-        {/* Profile Footer */}
-       <SideBarFooter profile={profile}/>
+        <SideBarHeader toggleSidebar={toggleSidebar} />
+        <ChatHistory
+          chatSessions={sessions}
+          onSessionSelect={onSessionSelect}
+          onNewChat={onNewChat}  // Pass it through
+          currentSessionId={currentSession}
+        />
+        <SideBarFooter profile={profile} />
       </aside>
-
     </>
-  )
+  );
 }
 
 export default SideBar

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 
-function ChatHistory({ 
-  chatSessions = [], 
-  onSessionSelect, 
+function ChatHistory({
+  chatSessions = [],
+  onSessionSelect,
   onNewChat,
-  currentSessionId
+  currentSessionId,
+  isLoading
 }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -31,15 +32,29 @@ function ChatHistory({
         {/* New Chat Button */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          disabled={isLoading}
+          className={`
+            w-full flex items-center justify-center gap-2 px-4 py-2 
+            bg-blue-600 text-white rounded-lg transition-all duration-200
+            ${isLoading 
+              ? 'opacity-70 cursor-not-allowed' 
+              : 'hover:bg-blue-700 hover:shadow-md active:scale-98'
+            }
+          `}
         >
-          <PlusCircle size={20} />
+          {isLoading ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <PlusCircle size={20} />
+          )}
           <span>New Chat</span>
         </button>
 
         {/* Header */}
         <div className="sticky top-0 bg-white/80 backdrop-blur-sm px-3 py-2">
-          <span className="text-sm font-medium text-gray-600">Recent Chats</span>
+          <span className="text-sm font-medium text-gray-600">
+            Recent Chats ({chatSessions.length})
+          </span>
         </div>
 
         {/* Chat List */}
@@ -49,16 +64,16 @@ function ChatHistory({
               No chat history yet. Start a new conversation!
             </div>
           ) : (
-            chatSessions.map((chat, i) => (
+            chatSessions.map((session, i) => (
               <div
-                key={chat.id}
-                onClick={() => onSessionSelect(chat.id)}
+                key={session._id}
+                onClick={() => onSessionSelect(session._id)}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 className={`
-                  group relative hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent 
+                  group relative hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent
                   cursor-pointer transition-all duration-300 ease-in-out border-l-4
-                  ${chat.id === currentSessionId ? 'border-blue-600 bg-blue-50' : 'border-transparent'}
+                  ${session._id === currentSessionId ? 'border-blue-600 bg-blue-50' : 'border-transparent'}
                 `}
               >
                 <div className={`p-4 transition-all duration-300 ${
@@ -66,20 +81,30 @@ function ChatHistory({
                 }`}>
                   <div className="flex justify-between items-start mb-1">
                     <p className={`text-sm font-medium transition-all duration-300 ${
-                      chat.id === currentSessionId ? 'text-blue-600' : 'text-gray-700'
+                      session._id === currentSessionId ? 'text-blue-600' : 'text-gray-700'
                     }`}>
-                      {truncateMessage(chat.lastMessage)}
+                      {truncateMessage(session.session_name)}
                     </p>
-                    <span className="text-xs text-gray-500">
-                      {formatDate(chat.updatedAt)}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs text-gray-500">
+                        {formatDate(session.updatedAt)}
+                      </span>
+                      {session.message_count > 0 && (
+                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                          {session.message_count} messages
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Hover Effect Border */}
-                <div className={`absolute left-0 top-0 w-1 h-full transition-all duration-300 transform
-                  ${hoveredIndex === i || chat.id === currentSessionId ? 'bg-blue-600 scale-y-100' : 'bg-transparent scale-y-0'}`}
-                />
+                <div className={`
+                  absolute left-0 top-0 w-1 h-full transition-all duration-300 transform
+                  ${hoveredIndex === i || session._id === currentSessionId 
+                    ? 'bg-blue-600 scale-y-100' 
+                    : 'bg-transparent scale-y-0'}
+                `} />
               </div>
             ))
           )}

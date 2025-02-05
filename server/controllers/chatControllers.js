@@ -1,190 +1,230 @@
 const User = require('../models/userModel');
-const Session = require('../models/session');
-const Message = require('../models/message');
+const ChatSession = require('../models/ChatSession');
+const Message = require('../models/Message'); // You'll need to create this model
 const mongoose = require('mongoose');
 
+
+// Chat Controller
 exports.getChat = async (req, res) => {
     try {
         const user_id = req.user.id;
         const user_data = await User.findById(user_id).select('-password');
         if (!user_data) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(401).json({ message: 'User not found' });
         }
         res.status(200).json({ message: 'Login successful', user: user_data });
     } catch (error) {
+        console.error('Error in getChat:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-exports.getSessions = async (req, res) => {
-    try {
-        // Changed from sessions to Session (model name)
-        const sessions = await Session.find({ userId: req.user.id })
-            .sort({ updatedAt: -1 })
-            .limit(50);
-
-        res.json({ sessions });
-    } catch (error) {
-        console.error('Error fetching sessions:', error);
-        res.status(500).json({ message: 'Error fetching chat sessions' });
-    }
-};
-
+// Create a new session with proper error handling
 exports.postSession = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        const session = new Session({
-            userId: req.user.id,
-            lastMessage: "New conversation",
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+        const { userId, sessionName } = req.body;
 
-        const savedSession = await session.save();
-        
-        // Send back the complete session object
-        res.status(201).json({ 
-            session: {
-                _id: savedSession._id,
-                userId: savedSession.userId,
-                lastMessage: savedSession.lastMessage,
-                createdAt: savedSession.createdAt,
-                updatedAt: savedSession.updatedAt
-            }
-        });
-    } catch (error) {
-        console.error('Error creating session:', error);
-        res.status(500).json({ message: 'Error creating chat session' });
-    }
-};
-
-exports.getMessages = async (req, res) => {
-    try {
-        const { sessionId } = req.params;
-
-        // Changed from session to Session (model name)
-        const session = await Session.findOne({
-            _id: sessionId,
-            userId: req.user.id
-        });
-
-        if (!session) {
-            return res.status(404).json({ message: 'Session not found' });
+        // Validate inputs
+        if (!userId || !sessionName) {
+            return res.status(400).json({ 
+                message: 'Missing required fields: userId and sessionName are required' 
+            });
         }
 
-        const messages = await Message.find({ sessionId })
-            .sort({ timestamp: 1 });
+        // Verify user exists
+        const userExists = await User.findById(userId);
+        if (!userExists) {
+            return res.status(404).json({ 
+                message: 'User not found. Cannot create session.' 
+            });
+        }
 
-        res.json({ messages });
+        // Check for existing active session with same name
+        const existingSession = await ChatSession.findOne({
+            user_id: userId,
+            session_name: sessionName,
+            status: 'active'
+        });
+
+        if (existingSession) {
+            return res.status(200).json({ 
+                message: 'Using existing session', 
+                sessionId: existingSession._id 
+            });
+        }
+
+        // Create new session
+        const newSession = new ChatSession({
+            user_id: userId,
+            session_name: sessionName,
+            status: 'active',
+            last_activity: new Date(),
+            message_count: 0
+        });
+
+        await newSession.save({ session });
+        await session.commitTransaction();
+
+        res.status(201).json({ 
+            message: 'Chat session created successfully', 
+            sessionId: newSession._id 
+        });
+
     } catch (error) {
-        console.error('Error fetching messages:', error);
-        res.status(500).json({ message: 'Error fetching messages' });
+        await session.abortTransaction();
+        console.error('Error creating session:', error);
+
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: 'Invalid session data', 
+                errors: error.errors 
+            });
+        }
+
+        res.status(500).json({ 
+            message: 'Error creating chat session' 
+        });
+    } finally {
+        session.endSession();
     }
 };
 
+// Handle messages with proper session validation
 exports.postMessage = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const { sessionId } = req.params;
-        const { message } = req.body;
+        const { sessionId, message } = req.body;
 
-        // Validate sessionId
-        if (!sessionId || !mongoose.Types.ObjectId.isValid(sessionId)) {
-            await session.abortTransaction();
-            return res.status(400).json({ message: 'Invalid session ID' });
+        // Validate inputs
+        if (!sessionId || !message) {
+            return res.status(400).json({ 
+                message: 'Missing required fields: sessionId and message are required' 
+            });
         }
 
-        const chatSession = await Session.findOne({
-            _id: sessionId,
-            userId: req.user.id
-        });
-
+        // Verify session exists and is active
+        const chatSession = await ChatSession.findById(sessionId);
         if (!chatSession) {
-            await session.abortTransaction();
-            return res.status(404).json({ message: 'Session not found' });
+            return res.status(404).json({ 
+                message: 'Session not found' 
+            });
         }
 
-        // Save user message
+        if (chatSession.status !== 'active') {
+            return res.status(400).json({ 
+                message: 'Session is no longer active' 
+            });
+        }
+
+        // Store user message
         const userMessage = new Message({
-            sessionId,
-            text: message,
-            type: 'user',
-            timestamp: new Date()
+            session_id: sessionId,
+            content: message,
+            type: 'user'
         });
         await userMessage.save({ session });
 
-        // Generate bot response
+        // Generate bot response (replace with your actual bot logic)
         const botResponse = await generateBotResponse(message);
 
-        // Save bot message
+        // Store bot message
         const botMessage = new Message({
-            sessionId,
-            text: botResponse,
-            type: 'bot',
-            timestamp: new Date()
+            session_id: sessionId,
+            content: botResponse,
+            type: 'bot'
         });
         await botMessage.save({ session });
 
-        // Update session with last message
-        chatSession.lastMessage = message;
-        chatSession.updatedAt = new Date();
+        // Update session
+        chatSession.last_activity = new Date();
+        chatSession.message_count += 2; // Increment for both user and bot messages
         await chatSession.save({ session });
 
         await session.commitTransaction();
 
-        res.json({
+        res.status(200).json({ 
             message: botResponse,
             userMessage: userMessage,
             botMessage: botMessage
         });
+
     } catch (error) {
         await session.abortTransaction();
         console.error('Error processing message:', error);
-        res.status(500).json({ message: 'Error processing message' });
+
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: 'Invalid message data', 
+                errors: error.errors 
+            });
+        }
+
+        res.status(500).json({ 
+            message: 'Error processing message' 
+        });
     } finally {
         session.endSession();
     }
 };
-// Placeholder for bot response generation
+
+// Helper function for bot response (replace with your actual bot implementation)
 async function generateBotResponse(message) {
-    // Implement your chat bot logic here
-    
+    // Implement your chatbot logic here
+    // For now, just echo the message
     return `Echo: ${message}`;
 }
 
-// Add delete session functionality
-exports.deleteSession = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+// Get session messages
+exports.getSessionMessages = async (req, res) => {
     try {
         const { sessionId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
 
-        const chatSession = await Session.findOne({
-            _id: sessionId,
-            userId: req.user.id
+        const messages = await Message.find({ session_id: sessionId })
+            .sort({ timestamp: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const total = await Message.countDocuments({ session_id: sessionId });
+
+        res.status(200).json({
+            messages,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalMessages: total
         });
 
-        if (!chatSession) {
-            await session.abortTransaction();
-            return res.status(404).json({ message: 'Session not found' });
-        }
-
-        // Delete all messages in the session
-        await Message.deleteMany({ sessionId }, { session });
-
-        // Delete the session
-        await Session.deleteOne({ _id: sessionId }, { session });
-
-        await session.commitTransaction();
-
-        res.json({ message: 'Session deleted successfully' });
     } catch (error) {
-        await session.abortTransaction();
-        console.error('Error deleting session:', error);
-        res.status(500).json({ message: 'Error deleting session' });
-    } finally {
-        session.endSession();
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ 
+            message: 'Error fetching messages' 
+        });
+    }
+};
+
+// Get user's sessions
+exports.getSessions = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const sessions = await ChatSession.find({ 
+            user_id: userId,
+            status: 'active'
+        })
+        .sort({ last_activity: -1 })
+        .select('session_name last_activity message_count');
+
+        res.status(200).json({ sessions });
+
+    } catch (error) {
+        console.error('Error fetching sessions:', error);
+        res.status(500).json({ 
+            message: 'Error fetching sessions' 
+        });
     }
 };

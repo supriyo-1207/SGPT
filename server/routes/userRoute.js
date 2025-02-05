@@ -5,17 +5,17 @@ const loginController = require('../controllers/loginControllers');
 const chatController = require('../controllers/chatControllers');
 const authenticateUser = require('../middleware/authenticateUser ');
 
-// Routes
-router.post('/login', loginController.postLoging);
+// ✅ Authentication Routes
 router.post('/register', registerController.postRegister);
+router.post('/login', loginController.postLogin);
 router.post('/logout', authenticateUser, loginController.postLogout);
 
-// Chat routes
+// ✅ Chat Routes (Requires Authentication)
 router.get('/chat', authenticateUser, chatController.getChat);
 router.get('/chat/sessions', authenticateUser, chatController.getSessions);
 router.post('/chat/sessions', authenticateUser, chatController.postSession);
-router.get('/chat/sessions/:sessionId/messages', authenticateUser, chatController.getMessages);
-router.post('/chat/sessions/:sessionId/messages', authenticateUser, chatController.postMessage);
-router.delete('/chat/sessions/:sessionId', authenticateUser, chatController.deleteSession);
+router.get('/chat/sessions/:sessionId/messages', authenticateUser, chatController.getSessionMessages);
+router.post('/chat/messages', authenticateUser, chatController.postMessage);
+// router.delete('/chat/sessions/:sessionId', authenticateUser, chatController.deleteSession); // Added for session deletion
 
 module.exports = router;

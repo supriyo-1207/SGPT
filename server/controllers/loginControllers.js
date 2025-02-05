@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-exports.postLoging = async (req, res) => {
+exports.postLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -20,34 +20,37 @@ exports.postLoging = async (req, res) => {
 
     // Create and assign a token
     const token = jwt.sign(
-      { id: user._id }, 
+      { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' } // Token will expire in 1 hour
     );
 
     // Set cookie with appropriate options
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // false in development
-      sameSite: 'lax', // Changed from Strict to allow redirects
-      path: '/',
-      maxAge: 3600000, // 1 hour
-      domain: 'localhost' // Important for local development
+      httpOnly: true, // Prevents access to cookie from client-side JavaScript
+      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS in production
+      sameSite: 'lax', // Protects against cross-site request forgery (CSRF) attacks
+      path: '/', // Cookie will be sent for all routes in your app
+      maxAge: 3600000, // 1 hour in milliseconds
+      domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : 'localhost' // Update for production
     });
 
-    // Send success response
-    res.status(200).json({ 
+    // Send success response with user details
+    res.status(200).json({
       message: "Login successful",
-      user: { 
+      user: {
         id: user._id,
-        email: user.email 
+        email: user.email,
+        name: user.name, // Including name for personalization, if needed
+        gender: user.gender
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 exports.postLogout = async (req, res) => {
   try {
