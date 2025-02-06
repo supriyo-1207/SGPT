@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
-import { Settings, User, LogOut, Moon } from 'lucide-react';
+import { Settings, User, LogOut, Moon, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+
 function SideBarFooter({ profile }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
   // Logout function
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/logout", {}, {  // Fixed syntax for axios.post
-        withCredentials: true, 
+      const response = await axios.post("http://localhost:3000/logout", {}, {
+        withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-  
-      if (response.status === 200) {  // Axios does not use response.ok
-        navigate('/');  // Ensure you have `navigate` from `react-router-dom`
+
+      if (response.status === 200) {
+        navigate('/');
         toast.success("Logout successful!");
       } else {
         console.error("Logout failed");
@@ -27,7 +29,10 @@ function SideBarFooter({ profile }) {
       console.error("Error during logout:", error);
     }
   };
-  
+  const handleContactUs = () => {
+    navigate('/contact');
+  };
+
   return (
     <>
       {/* Profile Footer */}
@@ -45,7 +50,6 @@ function SideBarFooter({ profile }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{profile?.name || 'Guest'}</p>
             <p className="text-xs text-gray-500 truncate">{profile?.email || 'Not available'}</p>
-
           </div>
           <Settings size={18} className="text-gray-500" />
         </div>
@@ -59,7 +63,7 @@ function SideBarFooter({ profile }) {
               transition={{ duration: 0.2 }}
               className="absolute bottom-16 left-4 bg-white border border-gray-200 rounded-lg shadow-lg w-48 overflow-hidden"
             >
-              <motion.button
+              {/* <motion.button
                 whileHover={{ backgroundColor: '#f3f4f6' }}
                 className="w-full text-left px-4 py-2 flex items-center gap-2"
               >
@@ -70,6 +74,13 @@ function SideBarFooter({ profile }) {
                 className="w-full text-left px-4 py-2 flex items-center gap-2"
               >
                 <Moon size={16} /> Dark Mode
+              </motion.button> */}
+              <motion.button
+                whileHover={{ backgroundColor: '#f3f4f6' }}
+                className="w-full text-left px-4 py-2 flex items-center gap-2"
+                onClick={handleContactUs}
+              >
+                <Mail size={16} /> Contact Us
               </motion.button>
               <motion.button
                 whileHover={{ backgroundColor: '#fee2e2' }}

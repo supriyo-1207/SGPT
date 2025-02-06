@@ -103,20 +103,11 @@ const fetchSessionMessages = async (sessionId, page = 1) => {
 // Create new session
 const createSession = async (text) => {
   try {
-    // Create a better session name from the first message
-    const sessionName = text
-      // Split into words
-      .split(' ')
-      // Take first 6 words
-      .slice(0, 6)
-      // Join them back
-      .join(' ')
-      // Add ellipsis if original text was longer
-      .concat(text.length > 6 ? '...' : '')
-      // Limit total length to 30 characters
-      .slice(0, 30)
-      // Add ellipsis if we had to cut it
-      .concat(text.length > 30 ? '...' : '');
+    // Define a reasonable length for a single line display
+    const maxChars = 15;
+
+    // If the entire text fits within maxChars, use it as-is
+    let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "...";
 
     const response = await api.post('/chat/sessions', {
       userId: profile._id,
@@ -138,7 +129,8 @@ const createSession = async (text) => {
     toast.error('Failed to create new chat session');
     return null;
   }
-}; 
+};
+
 // Handle model selection change
 const handleModelChange = (model) => {
   setSelectedModel(model);
