@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Mic } from 'lucide-react';
+
 const InputArea = ({ onSendMessage }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef(null);
@@ -44,20 +45,26 @@ const InputArea = ({ onSendMessage }) => {
           <button
             type="submit"
             disabled={!message.trim()}
-            className="bg-blue-600 text-white px-4 py-3 rounded-xl 
+            className="bg-blue-600 text-white px-3 py-3 rounded-full 
               hover:bg-blue-700 active:bg-blue-800
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200 flex items-center gap-2
-              h-[42px] min-w-[90px]"
+              transition-all duration-200 flex items-center justify-center"
           >
-            <span className="hidden sm:inline">Send</span>
             <Send size={18} />
           </button>
+          <button
+            type="button"
+            className="bg-gray-200 text-gray-600 px-3 py-3 rounded-full 
+              hover:bg-gray-300 active:bg-gray-400
+              transition-all duration-200 flex items-center justify-center"
+          >
+            <Mic size={18} />
+          </button>
+
         </div>
       </form>
     </div>
   );
 };
 
-
-export default InputArea
+export default InputArea;
