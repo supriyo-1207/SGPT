@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
-const ModelDropdown = () => {
-  const [selectedModel, setSelectedModel] = useState('Claude');
+const ModelDropdown = ({ handleModelChange }) => {
+  const [selectedModel, setSelectedModel] = useState('Gemini');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -48,12 +48,27 @@ const ModelDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleSelect = (model) => {
+    setSelectedModel(model.name);
+    setDropdownOpen(false);
+    handleModelChange(model.name); // Notify parent component
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      setDropdownOpen((prev) => !prev);
+    }
+  };
+
   const selectedModelData = models.find(m => m.name === selectedModel);
 
   return (
     <div ref={dropdownRef} className="relative w-full max-w-[250px]">
       <button 
         onClick={() => setDropdownOpen(!dropdownOpen)}
+        onKeyDown={handleKeyDown}
+        role="button"
+        aria-expanded={dropdownOpen}
         className={`
           w-full flex items-center justify-between px-4 py-2
           border rounded-lg shadow-sm bg-white transition-all
@@ -69,17 +84,16 @@ const ModelDropdown = () => {
 
       {dropdownOpen && (
         <div 
-          className="
-            absolute z-20 w-full mt-2 bg-white border rounded-lg shadow-lg
-            overflow-hidden"
+          role="listbox"
+          className="absolute z-20 w-full mt-2 bg-white border rounded-lg shadow-lg overflow-hidden"
         >
           {models.map((model) => (
             <div 
               key={model.name}
-              onClick={() => {
-                setSelectedModel(model.name);
-                setDropdownOpen(false);
-              }}
+              role="option"
+              onClick={() => handleSelect(model)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSelect(model)}
+              tabIndex={0}
               className="
                 flex flex-col px-4 py-2 cursor-pointer hover:bg-gray-100 transition-all
               "

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Menu,} from 'lucide-react';
 import ModelDropdown from './ModelDropdown';
-function NavBar({ toggleSidebar }) {
+function NavBar({ toggleSidebar,handleModelChange }) {
   
 
   return (
@@ -15,7 +15,7 @@ function NavBar({ toggleSidebar }) {
 
       <div className="relative flex-1">
        
-        <ModelDropdown/>
+        <ModelDropdown handleModelChange={handleModelChange}/>
 
       </div>
 

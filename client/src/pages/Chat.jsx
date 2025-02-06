@@ -27,9 +27,10 @@ const Chat = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const messagesEndRef = useRef(null);
-
+  const [selectedModel, setSelectedModel] = useState('Gemini');
   const navigate = useNavigate();
 
+  // Toggle sidebar visibility 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -52,6 +53,7 @@ const Chat = () => {
       }
     }
   };
+  // Handle new chat session 
   const handleNewChat = async () => {
     setCurrentSession(null); // Clear current session
     setMessages([]); // Clear messages
@@ -68,7 +70,7 @@ const Chat = () => {
     }
   };
 
-  // Fetch messages for current session
+  
 // Fetch messages for current session
 const fetchSessionMessages = async (sessionId, page = 1) => {
   try {
@@ -98,8 +100,7 @@ const fetchSessionMessages = async (sessionId, page = 1) => {
   }
 };
 
-  // Create new session
-  // Create new session
+// Create new session
 const createSession = async (text) => {
   try {
     // Create a better session name from the first message
@@ -137,7 +138,13 @@ const createSession = async (text) => {
     toast.error('Failed to create new chat session');
     return null;
   }
+}; 
+// Handle model selection change
+const handleModelChange = (model) => {
+  setSelectedModel(model);
+  console.log('Selected model:', model); // Debug line
 };
+
 
   // Handle sending message
   const handleSendMessage = async (text) => {
@@ -163,7 +170,8 @@ const createSession = async (text) => {
     try {
       const response = await api.post('/chat/messages', {
         sessionId,
-        message: text
+        message: text,
+        model: selectedModel
       });
 
       const botMessage = {
@@ -252,7 +260,7 @@ const createSession = async (text) => {
         />
 
         <main className="flex flex-col flex-1 min-w-0">
-          <NavBar toggleSidebar={toggleSidebar} />
+          <NavBar toggleSidebar={toggleSidebar} handleModelChange={handleModelChange}/>
 
           <div className="flex-1 flex flex-col min-h-0">
             <ChatArea

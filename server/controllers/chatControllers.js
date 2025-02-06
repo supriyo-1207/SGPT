@@ -2,7 +2,7 @@ const User = require('../models/userModel');
 const ChatSession = require('../models/ChatSession');
 const Message = require('../models/Message'); // You'll need to create this model
 const mongoose = require('mongoose');
-
+const {generateBotResponse} = require('../services/botService');
 
 // Chat Controller
 exports.getChat = async (req, res) => {
@@ -98,8 +98,8 @@ exports.postMessage = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { sessionId, message } = req.body;
-
+        const { sessionId, message, model } = req.body;
+        console.log(sessionId,message,model);
         // Validate inputs
         if (!sessionId || !message) {
             return res.status(400).json({ 
@@ -130,7 +130,7 @@ exports.postMessage = async (req, res) => {
         await userMessage.save({ session });
 
         // Generate bot response (replace with your actual bot logic)
-        const botResponse = await generateBotResponse(message);
+        const botResponse = await generateBotResponse(message,model);
 
         // Store bot message
         const botMessage = new Message({
@@ -173,11 +173,11 @@ exports.postMessage = async (req, res) => {
 };
  
 // Helper function for bot response (replace with your actual bot implementation)
-async function generateBotResponse(message) {
-    // Implement your chatbot logic here
-    // For now, just echo the message
-    return `Echo: ${message}`;
-}
+// async function generateBotResponse(message,model) {
+//     // Implement your chatbot logic here
+//     // For now, just echo the message
+//     return `Echo: ${message}`;
+// }
 
 // Get session messages
 exports.getSessionMessages = async (req, res) => {
