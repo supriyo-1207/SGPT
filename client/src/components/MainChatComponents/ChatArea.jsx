@@ -1,10 +1,33 @@
-import React from 'react';
-import { Copy, Volume2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Copy, Volume2, VolumeX } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 
 const ChatArea = ({ messages, isLoading, messagesEndRef }) => {
+  const [speakingMessageId, setSpeakingMessageId] = useState(null);
+  const synthesisRef = useRef(window.speechSynthesis);
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const speakText = (text, messageId) => {
+    // Stop any ongoing speech
+    synthesisRef.current.cancel();
+
+    // If already speaking the same message, stop
+    if (speakingMessageId === messageId) {
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    utterance.onstart = () => setSpeakingMessageId(messageId);
+    utterance.onend = () => setSpeakingMessageId(null);
+
+    synthesisRef.current.speak(utterance);
   };
 
   return (
@@ -32,11 +55,9 @@ const ChatArea = ({ messages, isLoading, messagesEndRef }) => {
                   {msg.content}
                 </p>
 
-                {/* Bottom Row: Copy, Sound, Timestamp */}
                 <div className="flex items-center justify-end gap-2 text-xs mt-2">
                   {msg.type === 'bot' && (
                     <>
-                      {/* Copy Icon */}
                       <button
                         className="text-gray-400 hover:text-gray-600 transition"
                         onClick={() => handleCopy(msg.content)}
@@ -44,17 +65,19 @@ const ChatArea = ({ messages, isLoading, messagesEndRef }) => {
                         <Copy size={14} />
                       </button>
 
-                      {/* Sound Icon */}
                       <button
-                        className="text-gray-400 hover:text-gray-600 transition"
-                        onClick={() => console.log('Speak text logic here')}
+                        className={`transition ${
+                          speakingMessageId === msg.id 
+                            ? 'text-blue-600' 
+                            : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                        onClick={() => speakText(msg.content, msg.id)}
                       >
-                        <Volume2 size={14} />
+                        {speakingMessageId === msg.id ? <VolumeX size={14} /> : <Volume2 size={14} />}
                       </button>
                     </>
                   )}
 
-                  {/* Timestamp */}
                   <span className={`${msg.type === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: '2-digit',

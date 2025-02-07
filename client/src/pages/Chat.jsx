@@ -26,9 +26,11 @@ const Chat = () => {
   const [sessions, setSessions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isContinuousMode, setIsContinuousMode] = useState(false);
   const messagesEndRef = useRef(null);
   const [selectedModel, setSelectedModel] = useState('Gemini');
   const navigate = useNavigate();
+  const speechSynthesisRef = useRef(window.speechSynthesis);
 
   // Toggle sidebar visibility 
   const toggleSidebar = () => {
@@ -41,7 +43,6 @@ const Chat = () => {
       const response = await api.get('/chat');
       setProfile(response.data.user);
       setIsAuthenticated(true);
-      // After authentication, fetch user's sessions
       fetchSessions();
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -53,16 +54,17 @@ const Chat = () => {
       }
     }
   };
+
   // Handle new chat session 
   const handleNewChat = async () => {
-    setCurrentSession(null); // Clear current session
-    setMessages([]); // Clear messages
+    setCurrentSession(null);
+    setMessages([]);
   };
+
   // Fetch user's sessions
   const fetchSessions = async () => {
     try {
       const response = await api.get('/chat/sessions');
-      console.log('Fetched sessions:', response.data.sessions); // Debug line
       setSessions(response.data.sessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -70,118 +72,110 @@ const Chat = () => {
     }
   };
 
-  
-// Fetch messages for current session
-const fetchSessionMessages = async (sessionId, page = 1) => {
-  try {
-    const response = await api.get(`/chat/sessions/${sessionId}/messages`, {
-      params: { page, limit: 50 }
-    });
-    
-    const { messages: newMessages, totalPages } = response.data;
-    
-    // Sort messages by timestamp to ensure correct order
-    const sortedMessages = newMessages.sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
-    
-    if (page === 1) {
-      setMessages(sortedMessages);
-    } else {
-      // For pagination, add new messages at the beginning
-      setMessages(prev => [...sortedMessages, ...prev]);
+  // Fetch messages for current session
+  const fetchSessionMessages = async (sessionId, page = 1) => {
+    try {
+      const response = await api.get(`/chat/sessions/${sessionId}/messages`, {
+        params: { page, limit: 50 }
+      });
+
+      const { messages: newMessages, totalPages } = response.data;
+
+      const sortedMessages = newMessages.sort((a, b) =>
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
+
+      if (page === 1) {
+        setMessages(sortedMessages);
+      } else {
+        setMessages(prev => [...sortedMessages, ...prev]);
+      }
+
+      setHasMoreMessages(page < totalPages);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error('Failed to load messages');
     }
-    
-    setHasMoreMessages(page < totalPages);
-    setCurrentPage(page);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    toast.error('Failed to load messages');
-  }
-};
+  };
 
-// Create new session
-const createSession = async (text) => {
-  try {
-    // Define a reasonable length for a single line display
-    const maxChars = 15;
+  // Create new session
+  const createSession = async (text) => {
+    try {
+      const maxChars = 15;
+      let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "...";
 
-    // If the entire text fits within maxChars, use it as-is
-    let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "...";
+      const response = await api.post('/chat/sessions', {
+        userId: profile._id,
+        sessionName: sessionName
+      });
 
-    const response = await api.post('/chat/sessions', {
-      userId: profile._id,
-      sessionName: sessionName
-    });
+      const newSession = {
+        _id: response.data.sessionId,
+        session_name: sessionName,
+        message_count: 0
+      };
 
-    const newSession = {
-      _id: response.data.sessionId,
-      session_name: sessionName,
-      message_count: 0
-    };
+      setSessions(prev => [newSession, ...prev]);
+      setCurrentSession(response.data.sessionId);
+      return response.data.sessionId;
 
-    setSessions(prev => [newSession, ...prev]);
-    setCurrentSession(response.data.sessionId);
-    return response.data.sessionId;
+    } catch (error) {
+      console.error('Session creation failed:', error);
+      toast.error('Failed to create new chat session');
+      return null;
+    }
+  };
 
-  } catch (error) {
-    console.error('Session creation failed:', error);
-    toast.error('Failed to create new chat session');
-    return null;
-  }
-};
-
-// Handle model selection change
-const handleModelChange = (model) => {
-  setSelectedModel(model);
-  console.log('Selected model:', model); // Debug line
-};
-
+  // Handle model selection change
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
+  };
 
   // Handle sending message
   const handleSendMessage = async (text) => {
     if (!text.trim() || !isAuthenticated) return;
-
+  
     let sessionId = currentSession;
-
+  
     if (!sessionId) {
       sessionId = await createSession(text);
       if (!sessionId) return;
     }
-
+  
     const userMessage = {
       id: Date.now(),
       content: text,
       type: 'user',
       timestamp: new Date()
     };
-
+  
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-
+  
     try {
       const response = await api.post('/chat/messages', {
         sessionId,
         message: text,
         model: selectedModel
       });
-
+  
       const botMessage = {
         id: Date.now() + 1,
         content: response.data.message,
         type: 'bot',
         timestamp: new Date()
       };
-
+  
       setMessages(prev => [...prev, botMessage]);
-
-      // Update session message count
       setSessions(prev => prev.map(session =>
         session._id === sessionId
           ? { ...session, message_count: session.message_count + 2 }
           : session
       ));
-
+  
+      return response; // Return response for speech synthesis
+  
     } catch (error) {
       console.error('Message send error:', error);
       if (error.response?.status === 401) {
@@ -212,6 +206,11 @@ const handleModelChange = (model) => {
   // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Toggle continuous mode
+  const toggleContinuousMode = (mode) => {
+    setIsContinuousMode(mode);
   };
 
   useEffect(() => {
@@ -248,11 +247,14 @@ const handleModelChange = (model) => {
           sessions={sessions}
           currentSession={currentSession}
           onSessionSelect={handleSessionSelect}
-          onNewChat={handleNewChat}  // Add this prop
+          onNewChat={handleNewChat}
         />
 
         <main className="flex flex-col flex-1 min-w-0">
-          <NavBar toggleSidebar={toggleSidebar} handleModelChange={handleModelChange}/>
+          <NavBar 
+            toggleSidebar={toggleSidebar} 
+            handleModelChange={handleModelChange} 
+          />
 
           <div className="flex-1 flex flex-col min-h-0">
             <ChatArea
@@ -265,6 +267,7 @@ const handleModelChange = (model) => {
             <InputArea
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
+              onToggleContinuousMode={toggleContinuousMode}
             />
           </div>
         </main>
