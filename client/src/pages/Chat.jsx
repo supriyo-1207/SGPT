@@ -30,7 +30,6 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const [selectedModel, setSelectedModel] = useState('Gemini');
   const navigate = useNavigate();
-  const speechSynthesisRef = useRef(window.speechSynthesis);
 
   // Toggle sidebar visibility 
   const toggleSidebar = () => {
@@ -103,7 +102,7 @@ const Chat = () => {
   const createSession = async (text) => {
     try {
       const maxChars = 15;
-      let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "...";
+      let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "..." ;
 
       const response = await api.post('/chat/sessions', {
         userId: profile._id,
@@ -174,7 +173,7 @@ const Chat = () => {
           : session
       ));
   
-      return response; // Return response for speech synthesis
+      return response; // Return response for any additional functionality if needed
   
     } catch (error) {
       console.error('Message send error:', error);
@@ -237,7 +236,7 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <Title titleName="Chat" />
+      <Title titleName="Chat" /> 
 
       <div className="flex flex-1 min-h-0">
         <SideBar
