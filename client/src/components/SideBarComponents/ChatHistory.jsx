@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, Trash2 } from "lucide-react";
 
 function ChatHistory({
   chatSessions = [],
   onSessionSelect,
   onNewChat,
+  onDeleteSession,
   currentSessionId,
   isLoading,
 }) {
@@ -24,6 +25,11 @@ function ChatHistory({
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleDelete = (e, sessionId) => {
+    e.stopPropagation(); // Prevent triggering the session selection
+    onDeleteSession(sessionId);
   };
 
   return (
@@ -83,7 +89,7 @@ function ChatHistory({
                 `}
               >
                 <div
-                  className={`transition-transform duration-300 ${
+                  className={`flex-grow transition-transform duration-300 ${
                     hoveredIndex === i ? "translate-x-2" : ""
                   }`}
                 >
@@ -101,12 +107,27 @@ function ChatHistory({
                   </span>
                 </div>
 
-                {/* Message Count Badge */}
-                {session.message_count > 0 && (
-                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full shadow-sm">
-                    {session.message_count} messages
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Message Count Badge */}
+                  {session.message_count > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full shadow-sm">
+                      {session.message_count} messages
+                    </span>
+                  )}
+                  
+                  {/* Delete Button - Only visible on hover */}
+                  <button
+                    onClick={(e) => handleDelete(e, session._id)}
+                    className={`
+                      p-1.5 rounded-full transition-all duration-300
+                      ${hoveredIndex === i ? "opacity-100" : "opacity-0"}
+                      hover:bg-red-100 text-red-500 hover:text-red-600
+                    `}
+                    aria-label="Delete chat"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
 
                 {/* Left Hover Indicator */}
                 <div

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Settings, User, LogOut, Moon, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 
 function SideBarFooter({ profile }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
   const navigate = useNavigate();
 
   // Logout function
@@ -29,15 +31,41 @@ function SideBarFooter({ profile }) {
       console.error("Error during logout:", error);
     }
   };
+
   const handleContactUs = () => {
     navigate('/contact');
   };
+
+  // Effect for handling clicks outside the menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close menu if click is outside both the menu and the toggle button
+      if (
+        menuOpen &&
+        menuRef.current && 
+        !menuRef.current.contains(event.target) &&
+        buttonRef.current && 
+        !buttonRef.current.contains(event.target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpen]);
 
   return (
     <>
       {/* Profile Footer */}
       <div className="h-16 border-t border-gray-100 flex items-center px-4 relative">
         <div
+          ref={buttonRef}
           className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors w-full"
           onClick={() => setMenuOpen(!menuOpen)}
         >
@@ -57,11 +85,12 @@ function SideBarFooter({ profile }) {
         <AnimatePresence>
           {menuOpen && (
             <motion.div
+              ref={menuRef}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="absolute bottom-16 left-4 bg-white border border-gray-200 rounded-lg shadow-lg w-48 overflow-hidden"
+              className="absolute bottom-16 left-4 bg-white border border-gray-200 rounded-lg shadow-lg w-48 overflow-hidden z-50"
             >
               {/* <motion.button
                 whileHover={{ backgroundColor: '#f3f4f6' }}

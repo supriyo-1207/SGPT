@@ -228,3 +228,17 @@ exports.getSessions = async (req, res) => {
         });
     }
 };
+
+// Delete session
+exports.deleteSession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        await ChatSession.findByIdAndDelete(sessionId);
+        res.status(200).json({ message: 'Session deleted successfully' });    
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        res.status(500).json({ 
+            message: 'Error deleting session' 
+        });
+    }
+};

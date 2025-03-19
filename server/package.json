@@ -19,6 +19,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.15",
+    "marked": "^15.0.7",
     "mongoose": "^8.9.6",
     "nodemon": "^3.1.9",
     "uuid": "^11.0.5"

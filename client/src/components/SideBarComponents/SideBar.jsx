@@ -9,7 +9,9 @@ function SideBar({
   sessions,
   currentSession,
   onSessionSelect,
-  onNewChat  // Add this prop
+  onNewChat,
+  onDeleteSession,
+  isLoading
 }) {
   return (
     <>
@@ -31,11 +33,13 @@ function SideBar({
         z-20
       `}>
         <SideBarHeader toggleSidebar={toggleSidebar} />
-        <ChatHistory
+        <ChatHistory 
           chatSessions={sessions}
-          onSessionSelect={onSessionSelect}
-          onNewChat={onNewChat}  // Pass it through
           currentSessionId={currentSession}
+          onSessionSelect={onSessionSelect}
+          onNewChat={onNewChat}
+          onDeleteSession={onDeleteSession}
+          isLoading={isLoading}
         />
         <SideBarFooter profile={profile} />
       </aside>

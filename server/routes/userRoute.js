@@ -16,6 +16,6 @@ router.get('/chat/sessions', authenticateUser, chatController.getSessions);
 router.post('/chat/sessions', authenticateUser, chatController.postSession);
 router.get('/chat/sessions/:sessionId/messages', authenticateUser, chatController.getSessionMessages);
 router.post('/chat/messages', authenticateUser, chatController.postMessage);
-// router.delete('/chat/sessions/:sessionId', authenticateUser, chatController.deleteSession); // Added for session deletion
+router.delete('/chat/sessions/:sessionId', authenticateUser, chatController.deleteSession); // Added for session deletion
 
 module.exports = router;

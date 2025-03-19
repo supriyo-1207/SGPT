@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./db');
+const connectDB = require('./config/db');
 const user = require('./routes/userRoute');
 const cookieParser = require('cookie-parser')
 
@@ -25,8 +25,6 @@ app.use(cookieParser());
 
 // Routes
 app.use('/', user);
-
-
 
 // Start server only after successful DB connection
 app.listen(port, () => {

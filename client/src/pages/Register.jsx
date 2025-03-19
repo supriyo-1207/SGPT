@@ -47,11 +47,11 @@ function Register() {
       <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
         <div className="w-full max-w-md border border-gray-300 bg-white shadow-lg rounded-lg p-6">
           <div className="text-center">
-            <img
+            {/* <img
               alt="Your Company"
               src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
               className="mx-auto h-10 w-auto"
-            />
+            /> */}
             <h2 className="mt-6 text-2xl font-bold tracking-tight text-gray-900">
               Sign up to your account
             </h2>

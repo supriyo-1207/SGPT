@@ -29,6 +29,7 @@ const Chat = () => {
   const [isContinuousMode, setIsContinuousMode] = useState(false);
   const messagesEndRef = useRef(null);
   const [selectedModel, setSelectedModel] = useState('Gemini');
+  const [isStreaming, setIsStreaming] = useState(false);
   const navigate = useNavigate();
 
   // Toggle sidebar visibility 
@@ -196,6 +197,32 @@ const Chat = () => {
     await fetchSessionMessages(sessionId, 1);
   };
 
+  // Handle session deletion
+  const handleDeleteSession = async (sessionId) => {
+    try {
+      setIsLoading(true);
+      
+      // API call to delete the session
+      await api.delete(`/chat/sessions/${sessionId}`);
+      
+      // If the current session is being deleted, clear messages and session
+      if (currentSession === sessionId) {
+        setCurrentSession(null);
+        setMessages([]);
+      }
+      
+      // Remove the session from the list
+      setSessions(prev => prev.filter(session => session._id !== sessionId));
+      
+      toast.success('Chat session deleted successfully');
+    } catch (error) {
+      console.error('Session deletion failed:', error);
+      toast.error('Failed to delete chat session');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Load more messages
   const handleLoadMore = async () => {
     if (!hasMoreMessages || !currentSession) return;
@@ -247,6 +274,8 @@ const Chat = () => {
           currentSession={currentSession}
           onSessionSelect={handleSessionSelect}
           onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          isLoading={isLoading}
         />
 
         <main className="flex flex-col flex-1 min-w-0">
