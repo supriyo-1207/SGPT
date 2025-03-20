@@ -1,66 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Copy, Volume2, VolumeX } from "lucide-react";
 import WelcomeMessage from "./WelcomeMessage";
 
-const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = false }) => {
+const ChatArea = ({ messages, isLoading, messagesEndRef }) => {
   const [speakingMessageId, setSpeakingMessageId] = useState(null);
   const synthesisRef = useRef(window.speechSynthesis);
-  const [animatedMessages, setAnimatedMessages] = useState({});
-  const prevMessageCount = useRef(0);
-  const isFirstLoad = useRef(true);
 
-  useEffect(() => {
-    if (messages.length === 0) return;
-
-    // If this is a historical session or first load of messages, display all messages instantly
-    if (isHistoricalSession || isFirstLoad.current) {
-      const initialMessages = {};
-      messages.forEach((msg) => {
-        initialMessages[msg.id] = msg.content;
-      });
-      setAnimatedMessages(initialMessages);
-      isFirstLoad.current = false;
-      prevMessageCount.current = messages.length;
-      return;
-    }
-
-    // Only animate new messages (messages added after initial load)
-    if (messages.length > prevMessageCount.current) {
-      const lastMessage = messages[messages.length - 1];
-      
-      if (lastMessage.type === "bot") {
-        let words = lastMessage.content.split(" ");
-        let tempMessage = "";
-        let index = 0;
-
-        const interval = setInterval(() => {
-          if (index < words.length) {
-            tempMessage += words[index] + " ";
-            setAnimatedMessages((prev) => ({
-              ...prev,
-              [lastMessage.id]: tempMessage,
-            }));
-            index++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 50);
-      } else {
-        // For user messages, display instantly
-        setAnimatedMessages((prev) => ({
-          ...prev,
-          [lastMessage.id]: lastMessage.content,
-        }));
-      }
-    }
-
-    prevMessageCount.current = messages.length;
-  }, [messages, isHistoricalSession]);
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
+  // Function to strip HTML tags
+  const stripHtmlTags = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
   };
 
+  // Speak text using speech synthesis
   const speakText = (text, messageId) => {
     synthesisRef.current.cancel();
     if (speakingMessageId === messageId) {
@@ -68,7 +20,9 @@ const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = f
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Strip HTML tags before speech synthesis
+    const cleanText = stripHtmlTags(text);
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 1;
     utterance.pitch = 1;
 
@@ -78,11 +32,26 @@ const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = f
     synthesisRef.current.speak(utterance);
   };
 
+  // Copy text to clipboard
+  const handleCopy = (text) => {
+    // Strip HTML tags before copying
+    const cleanText = stripHtmlTags(text);
+    navigator.clipboard.writeText(cleanText).catch(err => console.error('Failed to copy text: ', err));
+  };
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      synthesisRef.current.cancel();
+    };
+  }, []);
+
+  // Scroll to the bottom of the chat area when messages or loading state changes
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isLoading, animatedMessages]);
+  }, [messages, isLoading]);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
@@ -102,14 +71,11 @@ const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = f
                     : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-none"
                   }
                   transition-transform duration-200 hover:scale-[1.02]
-                  animate-fade-in
                 `}
               >
                 <p
                   className="text-sm sm:text-base whitespace-pre-wrap break-words"
-                  dangerouslySetInnerHTML={{
-                    __html: msg.type === "bot" ? animatedMessages[msg.id] || "" : msg.content,
-                  }}
+                  dangerouslySetInnerHTML={{ __html: msg.content }}
                 />
                 <div className="flex items-center justify-end gap-2 text-xs mt-2">
                   {msg.type === "bot" && (
@@ -120,7 +86,6 @@ const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = f
                       >
                         <Copy size={14} />
                       </button>
-
                       <button
                         className={`transition ${speakingMessageId === msg.id
                             ? "text-blue-600"
@@ -132,7 +97,6 @@ const ChatArea = ({ messages, isLoading, messagesEndRef, isHistoricalSession = f
                       </button>
                     </>
                   )}
-
                   <span className={`${msg.type === "user" ? "text-blue-100" : "text-gray-400"}`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
