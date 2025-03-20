@@ -34,6 +34,7 @@ const conversation = new ConversationChain({
 // Function to generate bot response
 async function generateBotResponse(message) {
     try {
+        
         const response = await conversation.call({ input: message });
         return response.response || response.text; // Ensure proper extraction
     } catch (error) {
