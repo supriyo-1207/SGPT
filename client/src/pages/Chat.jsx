@@ -31,7 +31,8 @@ const Chat = () => {
   const [selectedModel, setSelectedModel] = useState('Gemini');
   const [isStreaming, setIsStreaming] = useState(false);
   const navigate = useNavigate();
-
+  const [isHistoricalSession, setIsHistoricalSession] = useState(false);
+  
   // Toggle sidebar visibility 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -59,6 +60,7 @@ const Chat = () => {
   const handleNewChat = async () => {
     setCurrentSession(null);
     setMessages([]);
+    setIsHistoricalSession(false); // Reset historical session flag
   };
 
   // Fetch user's sessions
@@ -75,6 +77,7 @@ const Chat = () => {
   // Fetch messages for current session
   const fetchSessionMessages = async (sessionId, page = 1) => {
     try {
+      setIsLoading(true);
       const response = await api.get(`/chat/sessions/${sessionId}/messages`, {
         params: { page, limit: 50 }
       });
@@ -96,6 +99,8 @@ const Chat = () => {
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to load messages');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,7 +108,7 @@ const Chat = () => {
   const createSession = async (text) => {
     try {
       const maxChars = 15;
-      let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "..." ;
+      let sessionName = text.length <= maxChars ? text : text.slice(0, maxChars).trim() + "...";
 
       const response = await api.post('/chat/sessions', {
         userId: profile._id,
@@ -135,47 +140,50 @@ const Chat = () => {
   // Handle sending message
   const handleSendMessage = async (text) => {
     if (!text.trim() || !isAuthenticated) return;
-  
+
     let sessionId = currentSession;
-  
+
     if (!sessionId) {
       sessionId = await createSession(text);
       if (!sessionId) return;
     }
-  
+
+    // When sending a new message, we're no longer in a historical session
+    setIsHistoricalSession(false);
+
     const userMessage = {
       id: Date.now(),
       content: text,
       type: 'user',
       timestamp: new Date()
     };
-  
+
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-  
+
     try {
       const response = await api.post('/chat/messages', {
         sessionId,
         message: text,
         model: selectedModel
       });
-  
+
       const botMessage = {
         id: Date.now() + 1,
         content: response.data.message,
         type: 'bot',
         timestamp: new Date()
       };
-  
+
       setMessages(prev => [...prev, botMessage]);
       setSessions(prev => prev.map(session =>
         session._id === sessionId
           ? { ...session, message_count: session.message_count + 2 }
           : session
       ));
-  
+
       return response; // Return response for any additional functionality if needed
-  
+
     } catch (error) {
       console.error('Message send error:', error);
       if (error.response?.status === 401) {
@@ -194,6 +202,7 @@ const Chat = () => {
     setCurrentSession(sessionId);
     setCurrentPage(1);
     setHasMoreMessages(true);
+    setIsHistoricalSession(true); // Set historical session flag when selecting a session
     await fetchSessionMessages(sessionId, 1);
   };
 
@@ -201,19 +210,20 @@ const Chat = () => {
   const handleDeleteSession = async (sessionId) => {
     try {
       setIsLoading(true);
-      
+
       // API call to delete the session
       await api.delete(`/chat/sessions/${sessionId}`);
-      
+
       // If the current session is being deleted, clear messages and session
       if (currentSession === sessionId) {
         setCurrentSession(null);
         setMessages([]);
+        setIsHistoricalSession(false); // Reset historical session flag
       }
-      
+
       // Remove the session from the list
       setSessions(prev => prev.filter(session => session._id !== sessionId));
-      
+
       toast.success('Chat session deleted successfully');
     } catch (error) {
       console.error('Session deletion failed:', error);
@@ -263,7 +273,7 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <Title titleName="Chat" /> 
+      <Title titleName="Chat" />
 
       <div className="flex flex-1 min-h-0">
         <SideBar
@@ -279,9 +289,9 @@ const Chat = () => {
         />
 
         <main className="flex flex-col flex-1 min-w-0">
-          <NavBar 
-            toggleSidebar={toggleSidebar} 
-            handleModelChange={handleModelChange} 
+          <NavBar
+            toggleSidebar={toggleSidebar}
+            handleModelChange={handleModelChange}
           />
 
           <div className="flex-1 flex flex-col min-h-0">
@@ -291,6 +301,7 @@ const Chat = () => {
               onLoadMore={handleLoadMore}
               hasMore={hasMoreMessages}
               messagesEndRef={messagesEndRef}
+              isHistoricalSession={isHistoricalSession}
             />
             <InputArea
               onSendMessage={handleSendMessage}

@@ -13,11 +13,11 @@ function NavBar({ toggleSidebar,handleModelChange }) {
         <Menu size={20} />
       </button>
 
-      <div className="relative flex-1">
+      {/* <div className="relative flex-1">
        
         <ModelDropdown handleModelChange={handleModelChange}/>
 
-      </div>
+      </div> */}
 
       {/* <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors transform hover:scale-110">
         <Settings size={20} className="text-gray-600" />
