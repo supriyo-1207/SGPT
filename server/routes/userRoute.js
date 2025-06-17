@@ -6,7 +6,7 @@ const chatController = require('../controllers/chatControllers');
 const authenticateUser = require('../middleware/authenticateUser ');
 const restrictLoggedInUsers = require('../middleware/restrictLoggedInUsers');
 
-// ✅ Authentication Routes
+//  Authentication Routes
 // Register route (only accessible to non-logged-in users)
 router.post("/register", restrictLoggedInUsers, registerController.postRegister);
 
@@ -27,7 +27,7 @@ router.post("/verify-email", registerController.verifyEmail);
 // Resend verification email route (accessible to non-logged-in users)
 router.post("/resend-verification", restrictLoggedInUsers, registerController.resendVerificationEmail);
 
-// ✅ Chat Routes (Requires Authentication)
+//  Chat Routes (Requires Authentication)
 router.get('/chat', authenticateUser, chatController.getChat);
 router.get('/chat/sessions', authenticateUser, chatController.getSessions);
 router.post('/chat/sessions', authenticateUser, chatController.postSession);

@@ -9,7 +9,7 @@ function SideBarHeader({ toggleSidebar }) {
         <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-md">
           <span className="text-white font-bold text-sm">AI</span>
         </div>
-        {/* ✅ Ensure SGPTChat is visible */}
+        {/*  Ensure SGPTChat is visible */}
         <span className="font-semibold text-gray-800">SGPTChat</span>
       </div>
 

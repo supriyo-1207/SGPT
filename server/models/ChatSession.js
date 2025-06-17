@@ -15,6 +15,6 @@ module.exports = mongoose.model("ChatSession", ChatSessionSchema);
 //     "_id": "65b6f97e1a2c4e5a8b2f1d36",
 //     "user_id": "64a8b5c6d20f3c7b5c9a8e72",
 //     "session_name": "Chat with AI",
-//     "createdAt": "2024-02-05T10:30:00.123Z",  // ✅ Automatically generated
-//     "updatedAt": "2024-02-05T10:30:00.123Z"   // ✅ Initially same as createdAt
+//     "createdAt": "2024-02-05T10:30:00.123Z",  //  Automatically generated
+//     "updatedAt": "2024-02-05T10:30:00.123Z"   //  Initially same as createdAt
 // }

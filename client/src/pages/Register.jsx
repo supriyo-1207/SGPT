@@ -4,7 +4,7 @@ import { Mail, Lock, User, Mic, History, Bot, CheckCircle, AlertCircle, RefreshC
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
-// ✅ Define API instance to handle requests with cookies
+//  Define API instance to handle requests with cookies
 const api = axios.create({
   baseURL: 'http://localhost:3000',
   withCredentials: true, // Ensures cookies are sent
@@ -20,13 +20,13 @@ const Register = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const navigate = useNavigate(); // ✅ Use React Router for navigation
+  const navigate = useNavigate(); // Use React Router for navigation
 
-  // ✅ Check if user is already authenticated
+  // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get('/auth/check'); // ✅ API call
+        const response = await api.get('/auth/check'); //  API call
         if (response.status === 200) {
           toast.info("You are already logged in!");
           navigate('/chat'); // Redirect if authenticated
@@ -39,7 +39,7 @@ const Register = () => {
     checkAuth();
   }, [navigate]);
 
-  // ✅ Handle signup form submission
+  //  Handle signup form submission
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -50,7 +50,7 @@ const Register = () => {
     }
 
     try {
-      // ✅ Send the form data to the server
+      //  Send the form data to the server
       const response = await api.post('/register', {
         fullName,
         email,
@@ -71,12 +71,12 @@ const Register = () => {
     }
   };
 
-  // ✅ Handle resend verification email
+  //  Handle resend verification email
   const handleResendVerification = () => {
     if (countdown > 0) return;
 
     setIsResending(true);
-    // ✅ Call API to resend verification email
+    //  Call API to resend verification email
     api.post('/resend-verification', { email })
       .then(() => {
         toast.success("Verification email resent!");
@@ -90,7 +90,7 @@ const Register = () => {
       });
   };
 
-  // ✅ Start countdown for resend button
+  //  Start countdown for resend button
   const startCountdown = () => {
     setCountdown(60);
     const timer = setInterval(() => {
@@ -104,12 +104,12 @@ const Register = () => {
     }, 1000);
   };
 
-  // ✅ Handle verification code submission
+  //  Handle verification code submission
   const handleVerifyCode = async (e) => {
     e.preventDefault();
 
     try {
-      // ✅ Verify the code with the server
+      // Verify the code with the server
       const response = await api.post('/verify-email', { email, code: verificationCode });
       if (response.status === 200) {
         toast.success("Email verified successfully! Redirecting to login...");
