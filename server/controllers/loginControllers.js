@@ -27,13 +27,13 @@ exports.postLogin = async (req, res) => {
 
     // Set cookie with appropriate options
     res.cookie("token", token, {
-      httpOnly: true, // Prevents access to cookie from client-side JavaScript
-      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS in production
-      sameSite: 'lax', // Protects against cross-site request forgery (CSRF) attacks
-      path: '/', // Cookie will be sent for all routes in your app
-      maxAge: 3600000, // 1 hour in milliseconds
-      domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : 'localhost' // Update for production
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // true in Vercel
+      sameSite: 'None', // Required for cross-origin cookies
+      path: '/',
+      maxAge: 3600000, // 1 hour
     });
+
 
     // Send success response with user details
     res.status(200).json({
@@ -61,11 +61,11 @@ exports.postLogout = async (req, res) => {
       sameSite: 'lax', // Helps prevent CSRF attacks
       path: '/' // Applies to the entire site
     });
-    
+
 
     // Send success response
     res.status(200).json({ message: "Logout successful" });
-  } catch (error) { 
+  } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ message: "Internal server error" });
   }
