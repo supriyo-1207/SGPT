@@ -18,7 +18,7 @@ connectDB();
 
 // Middlewares
 app.use(cors({
-    origin: 'http://localhost:5173',  // Your frontend URL
+    origin: 'https://sgpt-ashy.vercel.app',  // Your frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true // Allow credentials to be sent
 }));
