@@ -6,7 +6,7 @@ import axios from 'axios';
 
 //  Define API instance to handle requests with cookies
 const api = axios.create({
-  baseURL: 'https://sgpt-backend.vercel.app/',
+  baseURL: 'https://sgpt-backend.vercel.app',
   withCredentials: true, // Ensures cookies are sent
   headers: { 'Content-Type': 'application/json' }
 });

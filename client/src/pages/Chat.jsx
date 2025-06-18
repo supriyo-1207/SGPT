@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://sgpt-backend.vercel.app/',
+  baseURL: 'https://sgpt-backend.vercel.app',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
