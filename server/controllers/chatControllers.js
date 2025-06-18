@@ -1,6 +1,6 @@
 const User = require('../models/userModel');
 const ChatSession = require('../models/ChatSession');
-const Message = require('../models/Message'); // You'll need to create this model
+const Message = require('../models/message'); // You'll need to create this model
 const mongoose = require('mongoose');
 const { generateBotResponse } = require('../services/botService');
 const marked = require("marked");
