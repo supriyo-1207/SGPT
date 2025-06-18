@@ -3,7 +3,7 @@ const router = express.Router();
 const registerController = require('../controllers/registerControllers');
 const loginController = require('../controllers/loginControllers');
 const chatController = require('../controllers/chatControllers');
-const authenticateUser = require('../middleware/authenticateUser');
+const authenticateUser = require('../middleware/authenticateUser ');
 const restrictLoggedInUsers = require('../middleware/restrictLoggedInUsers');
 
 //  Authentication Routes
