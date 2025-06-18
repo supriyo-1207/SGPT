@@ -35,4 +35,10 @@ router.get('/chat/sessions/:sessionId/messages', authenticateUser, chatControlle
 router.post('/chat/messages', authenticateUser, chatController.postMessage);
 router.delete('/chat/sessions/:sessionId', authenticateUser, chatController.deleteSession); // Added for session deletion
 
+
+// for testing purposes
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'Backend is live' });
+});
+
 module.exports = router;
