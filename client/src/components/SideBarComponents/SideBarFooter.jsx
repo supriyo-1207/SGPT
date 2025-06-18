@@ -14,7 +14,7 @@ function SideBarFooter({ profile }) {
   // Logout function
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/logout", {}, {
+      const response = await axios.post("https://sgpt-backend.vercel.app/logout", {}, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
