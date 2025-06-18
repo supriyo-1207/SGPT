@@ -1,4 +1,6 @@
 const winston = require("winston");
+const fs = require("fs");
+const path = require("path");
 
 // Define log format
 const logFormat = winston.format.combine(
@@ -8,16 +10,27 @@ const logFormat = winston.format.combine(
   })
 );
 
-// Create Winston logger
+// Create logger instance
 const logger = winston.createLogger({
-  level: "debug", // Set debug as the minimum level
+  level: "debug",
   format: logFormat,
   transports: [
-    new winston.transports.Console(), // Log to console
-    new winston.transports.File({ filename: "logs/debug.log", level: "debug" }), // Store debug logs
-    new winston.transports.File({ filename: "logs/error.log", level: "error" }), // Store errors separately
-    new winston.transports.File({ filename: "logs/combined.log" }), // Store all logs
+    new winston.transports.Console(), // Always log to console
   ],
 });
+
+// Add file transports only in development (not on Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  const logDir = path.join(__dirname, '../logs');
+
+  // Create logs directory if it doesn't exist
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir);
+  }
+
+  logger.add(new winston.transports.File({ filename: path.join(logDir, 'debug.log'), level: 'debug' }));
+  logger.add(new winston.transports.File({ filename: path.join(logDir, 'error.log'), level: 'error' }));
+  logger.add(new winston.transports.File({ filename: path.join(logDir, 'combined.log') }));
+}
 
 module.exports = logger;
