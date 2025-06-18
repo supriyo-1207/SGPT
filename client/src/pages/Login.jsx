@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // Create an axios instance with default configurations
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // Base URL for API requests
+  baseURL: 'https://sgpt-backend.vercel.app/', // Base URL for API requests
   withCredentials: true, // Include credentials (cookies) in requests
   headers: {
     'Content-Type': 'application/json' // Set default content type to JSON
