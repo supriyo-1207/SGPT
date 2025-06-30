@@ -27,11 +27,6 @@ git clone https://github.com/supriyo-1207/SGPT.git
 # Navigate to the project directory
 cd SGPT
 
-# Install dependencies
-npm install
-
-# Install dependencies
-npm install
 ```
 ### Frontend
 To install the frontend part of the project, follow these steps:
